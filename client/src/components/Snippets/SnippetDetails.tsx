@@ -1,5 +1,5 @@
 import { useContext } from 'react';
-import { useHistory } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { SnippetsContext } from '../../store';
 import { Snippet } from '../../typescript/interfaces';
 import { dateParser } from '../../utils';
@@ -24,16 +24,12 @@ export const SnippetDetails = (props: Props): JSX.Element => {
     isPinned
   } = props.snippet;
 
-  const history = useHistory();
+  const navigate = useNavigate();
 
   const { deleteSnippet, setSnippet } = useContext(SnippetsContext);
 
   const creationDate = dateParser(createdAt);
   const updateDate = dateParser(updatedAt);
-
-  // const copyHandler = () => {
-  //   copy(code);
-  // };
 
   return (
     <Card>
@@ -89,8 +85,7 @@ export const SnippetDetails = (props: Props): JSX.Element => {
           outline
           handler={() => {
             setSnippet(id);
-            history.push({
-              pathname: `/editor/${id}`,
+            navigate(`/editor/${id}`, {
               state: { from: window.location.pathname }
             });
           }}

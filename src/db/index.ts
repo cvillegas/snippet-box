@@ -1,6 +1,6 @@
 import path from 'path';
 import { Sequelize } from 'sequelize';
-import Umzug from 'umzug';
+import { Umzug, SequelizeStorage } from 'umzug';
 import { Logger } from '../utils';
 
 const logger = new Logger('db');
@@ -12,22 +12,27 @@ export const sequelize = new Sequelize({
   logging: false
 });
 
-// Migrations config
+// Migrations config (umzug v3)
 const umzug = new Umzug({
   migrations: {
-    path: path.join(__dirname, './migrations'),
-    params: [sequelize.getQueryInterface()],
-    pattern: /^\d+[\w-]+\.(js|ts)$/
+    glob: path.join(__dirname, './migrations/*.{js,ts}').replace(/\\/g, '/'),
+    resolve: ({ name, path: migrationPath, context }) => {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const migration = require(migrationPath as string);
+      return {
+        name,
+        up: async () => migration.up(context),
+        down: async () => migration.down(context)
+      };
+    }
   },
-  storage: 'sequelize',
-  storageOptions: {
-    sequelize
-  },
-  logging: false
+  context: sequelize.getQueryInterface(),
+  storage: new SequelizeStorage({ sequelize }),
+  logger: undefined
 });
 
 export const connectDB = async () => {
-  const isDev = process.env.NODE_ENV == 'development';
+  const isDev = process.env.NODE_ENV === 'development';
 
   try {
     // Create & connect db
@@ -41,8 +46,8 @@ export const connectDB = async () => {
       logger.log(`Found pending migrations. Executing...`);
 
       if (isDev) {
-        pendingMigrations.forEach(({ file }) =>
-          logger.log(`Executing ${file} migration`, 'DEV')
+        pendingMigrations.forEach(({ name }) =>
+          logger.log(`Executing ${name} migration`, 'DEV')
         );
       }
     }

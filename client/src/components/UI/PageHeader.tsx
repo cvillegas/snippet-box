@@ -1,12 +1,12 @@
 import { Link } from 'react-router-dom';
 
-interface Props<T> {
+interface Props {
   title: string;
   prevDest?: string;
-  prevState?: T;
+  prevState?: { from: string };
 }
 
-export const PageHeader = <T,>(props: Props<T>): JSX.Element => {
+export const PageHeader = (props: Props): JSX.Element => {
   const { title, prevDest, prevState } = props;
 
   return (
@@ -15,10 +15,8 @@ export const PageHeader = <T,>(props: Props<T>): JSX.Element => {
       {prevDest && (
         <h6>
           <Link
-            to={{
-              pathname: prevDest,
-              state: prevState
-            }}
+            to={prevDest}
+            state={prevState}
             className='text-decoration-none text-light'
           >
             &lt;- Go back

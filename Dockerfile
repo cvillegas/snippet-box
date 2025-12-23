@@ -1,26 +1,32 @@
-FROM node:14-alpine
+FROM node:20-alpine
 
 WORKDIR /app
 
+# Copy package files
 COPY package*.json ./
 
-RUN npm install
+# Install backend dependencies (including dev for build)
+RUN npm install --legacy-peer-deps
 
+# Copy client package files and install
+COPY client/package*.json ./client/
+RUN cd client && npm install --legacy-peer-deps
+
+# Copy source files
 COPY . .
 
-# Install client dependencies
-RUN mkdir -p ./public ./data \
-    && cd client \
-    && npm install \
-    && npm rebuild node-sass
+# Create directories
+RUN mkdir -p ./public ./data
 
-# Build 
-RUN npm run build \
-    && mv ./client/build/* ./public
+# Build backend
+RUN npm run build:tsc
 
-# Clean up src files
+# Build frontend
+RUN cd client && npm run build && mv ./build/* ../public/
+
+# Clean up source files and dev dependencies
 RUN rm -rf src/ ./client \
-    && npm prune --production
+    && npm prune --omit=dev
 
 EXPOSE 5000
 

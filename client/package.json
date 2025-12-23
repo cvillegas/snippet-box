@@ -1,27 +1,26 @@
 {
   "name": "client",
-  "version": "0.1.0",
+  "version": "2.0.0",
   "private": true,
   "dependencies": {
-    "@icons-pack/react-simple-icons": "^4.6.1",
-    "@mdi/js": "^6.1.95",
-    "@mdi/react": "^1.5.0",
-    "@types/node": "^12.20.25",
-    "@types/react": "^17.0.21",
-    "@types/react-dom": "^17.0.9",
-    "@types/react-router-dom": "^5.3.0",
-    "axios": "^0.21.4",
-    "bootstrap": "^5.1.1",
+    "@icons-pack/react-simple-icons": "^9.1.0",
+    "@mdi/js": "^7.3.67",
+    "@mdi/react": "^1.6.1",
+    "@types/node": "^20.10.0",
+    "@types/react": "^18.2.42",
+    "@types/react-dom": "^18.2.17",
+    "axios": "^1.6.2",
+    "bootstrap": "^5.3.2",
     "clipboard-copy": "^4.0.1",
-    "dayjs": "^1.10.7",
-    "highlight.js": "^11.2.0",
-    "node-sass": "^6.0.1",
-    "react": "^17.0.2",
-    "react-dom": "^17.0.2",
-    "react-markdown": "^7.0.1",
-    "react-router-dom": "^5.3.0",
-    "react-scripts": "4.0.3",
-    "typescript": "^4.4.3"
+    "dayjs": "^1.11.10",
+    "highlight.js": "^11.9.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-markdown": "^9.0.1",
+    "react-router-dom": "^6.21.0",
+    "react-scripts": "5.0.1",
+    "sass": "^1.69.5",
+    "typescript": "^5.3.2"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -47,8 +46,5 @@
       "last 1 safari version"
     ]
   },
-  "proxy": "http://localhost:5000",
-  "devDependencies": {
-    "purgecss": "^4.0.3"
-  }
+  "proxy": "http://localhost:5000"
 }

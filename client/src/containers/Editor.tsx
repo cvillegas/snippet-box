@@ -4,20 +4,17 @@ import { SnippetForm } from '../components/Snippets/SnippetForm';
 import { Layout, PageHeader } from '../components/UI';
 import { SnippetsContext } from '../store';
 
-interface Params {
-  id?: string;
-}
-
 export const Editor = (): JSX.Element => {
   const { setSnippet: setCurrentSnippet } = useContext(SnippetsContext);
   const [inEdit, setInEdit] = useState(false);
 
   // Get previous location
-  const location = useLocation<{ from: string }>();
-  const { from } = location.state || '/snippets';
+  const location = useLocation();
+  const state = location.state as { from?: string } | null;
+  const from = state?.from || '/snippets';
 
   // Get id
-  const { id } = useParams<Params>();
+  const { id } = useParams<{ id?: string }>();
 
   // Set snippet
   useEffect(() => {
@@ -25,13 +22,13 @@ export const Editor = (): JSX.Element => {
       setCurrentSnippet(+id);
       setInEdit(true);
     }
-  }, []);
+  }, [id]);
 
   return (
     <Layout>
       {inEdit ? (
         <Fragment>
-          <PageHeader<{ from: string }>
+          <PageHeader
             title='Edit snippet'
             prevDest={from}
             prevState={{ from: '/snippets' }}
