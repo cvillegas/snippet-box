@@ -1,3 +1,14 @@
+### v2.1.0 (2025-12-23)
+
+**New Feature: Import/Export Snippets** - *Added by [Cesar Villegas](https://github.com/cvillegas)*
+
+- Added ability to export all snippets to JSON file
+- Added ability to import snippets from JSON file
+- Duplicate handling: skip by default, with option to overwrite
+- Import/Export buttons available on the Snippets library page
+
+---
+
 ### v2.0.0 (2025-12-23)
 
 **Security Updates & Modernization** - *Updated by [Cesar Villegas](https://github.com/cvillegas)*

@@ -117,6 +117,11 @@ Your existing snippets will be preserved automatically.
 
 ## Functionality
 
+- **Import / Export**
+  - Export all snippets to a JSON file for backup or migration
+  - Import snippets from JSON file
+  - Skip duplicates or overwrite existing snippets
+
 - **Search**
   - Search your snippets with built-in tags and language filters
 

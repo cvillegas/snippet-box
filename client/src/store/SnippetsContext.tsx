@@ -7,7 +7,10 @@ import {
   Response,
   TagCount,
   NewSnippet,
-  SearchQuery
+  SearchQuery,
+  ExportData,
+  ExportSnippet,
+  ImportResult
 } from '../typescript/interfaces';
 
 export const SnippetsContext = createContext<Context>({
@@ -23,7 +26,9 @@ export const SnippetsContext = createContext<Context>({
   deleteSnippet: (id: number) => {},
   toggleSnippetPin: (id: number) => {},
   countTags: () => {},
-  searchSnippets: (query: SearchQuery) => {}
+  searchSnippets: (query: SearchQuery) => {},
+  exportSnippets: () => Promise.resolve({ version: '', exportedAt: '', count: 0, snippets: [] }),
+  importSnippets: () => Promise.resolve({ imported: 0, updated: 0, skipped: 0, total: 0 })
 });
 
 interface Props {
@@ -150,6 +155,22 @@ export const SnippetsContextProvider = (props: Props): JSX.Element => {
       .catch(err => console.log(err));
   };
 
+  const exportSnippets = async (): Promise<ExportData> => {
+    const res = await axios.get<Response<ExportData>>('/api/snippets/export');
+    return res.data.data;
+  };
+
+  const importSnippets = async (
+    snippetsToImport: ExportSnippet[],
+    overwrite: boolean
+  ): Promise<ImportResult> => {
+    const res = await axios.post<Response<ImportResult>>('/api/snippets/import', {
+      snippets: snippetsToImport,
+      overwrite
+    });
+    return res.data.data;
+  };
+
   const context = {
     snippets,
     searchResults,
@@ -163,7 +184,9 @@ export const SnippetsContextProvider = (props: Props): JSX.Element => {
     deleteSnippet,
     toggleSnippetPin,
     countTags,
-    searchSnippets
+    searchSnippets,
+    exportSnippets,
+    importSnippets
   };
 
   return (

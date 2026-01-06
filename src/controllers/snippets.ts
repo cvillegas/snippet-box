@@ -296,3 +296,149 @@ export const searchSnippets = asyncWrapper(
     });
   }
 );
+
+/**
+ * @description Export all snippets as JSON
+ * @route /api/snippets/export
+ * @request GET
+ */
+export const exportSnippets = asyncWrapper(
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const snippets = await SnippetModel.findAll({
+      include: {
+        model: TagModel,
+        as: 'tags',
+        attributes: ['name'],
+        through: {
+          attributes: []
+        }
+      }
+    });
+
+    const exportData = snippets.map(snippet => {
+      const rawSnippet = snippet.get({ plain: true });
+      return {
+        title: rawSnippet.title,
+        description: rawSnippet.description,
+        language: rawSnippet.language,
+        code: rawSnippet.code,
+        docs: rawSnippet.docs,
+        isPinned: rawSnippet.isPinned,
+        tags: rawSnippet.tags?.map(tag => tag.name) || [],
+        createdAt: rawSnippet.createdAt,
+        updatedAt: rawSnippet.updatedAt
+      };
+    });
+
+    const exportPayload = {
+      version: '2.0.0',
+      exportedAt: new Date().toISOString(),
+      count: exportData.length,
+      snippets: exportData
+    };
+
+    res.status(200).json({
+      data: exportPayload
+    });
+  }
+);
+
+interface ImportSnippet {
+  title: string;
+  description?: string;
+  language: string;
+  code: string;
+  docs?: string;
+  isPinned?: boolean;
+  tags?: string[];
+}
+
+interface ImportBody {
+  snippets: ImportSnippet[];
+  overwrite?: boolean;
+}
+
+/**
+ * @description Import snippets from JSON
+ * @route /api/snippets/import
+ * @request POST
+ */
+export const importSnippets = asyncWrapper(
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const { snippets, overwrite = false } = <ImportBody>req.body;
+    const logger = new Logger('import');
+
+    if (!snippets || !Array.isArray(snippets)) {
+      return next(new ErrorResponse(400, 'Invalid import format. Expected { snippets: [...] }'));
+    }
+
+    let imported = 0;
+    let skipped = 0;
+    let updated = 0;
+
+    for (const snippetData of snippets) {
+      // Validate required fields
+      if (!snippetData.title || !snippetData.language || !snippetData.code) {
+        skipped++;
+        continue;
+      }
+
+      // Check if snippet with same title exists
+      const existingSnippet = await SnippetModel.findOne({
+        where: { title: snippetData.title }
+      });
+
+      if (existingSnippet) {
+        if (overwrite) {
+          // Update existing snippet
+          const tags = snippetData.tags || [];
+          const parsedTags = tagParser([...tags, snippetData.language.toLowerCase()]);
+
+          await existingSnippet.update({
+            description: snippetData.description || '',
+            language: snippetData.language,
+            code: snippetData.code,
+            docs: snippetData.docs || '',
+            isPinned: snippetData.isPinned ? 1 : 0
+          } as any);
+
+          // Update tags
+          await Snippet_TagModel.destroy({ where: { snippet_id: existingSnippet.id } });
+          await createTags(parsedTags, existingSnippet.id);
+
+          updated++;
+        } else {
+          skipped++;
+        }
+      } else {
+        // Create new snippet
+        const tags = snippetData.tags || [];
+        const parsedTags = tagParser([...tags, snippetData.language.toLowerCase()]);
+
+        const newSnippet = await SnippetModel.create({
+          title: snippetData.title,
+          description: snippetData.description || '',
+          language: snippetData.language,
+          code: snippetData.code,
+          docs: snippetData.docs || '',
+          isPinned: snippetData.isPinned ? 1 : 0,
+          tags: [...parsedTags].join(',')
+        } as any);
+
+        await createTags(parsedTags, newSnippet.id);
+        imported++;
+      }
+    }
+
+    logger.log(`Import complete: ${imported} imported, ${updated} updated, ${skipped} skipped`);
+
+    res.status(200).json({
+      data: {
+        imported,
+        updated,
+        skipped,
+        total: snippets.length
+      }
+    });
+  }
+);
